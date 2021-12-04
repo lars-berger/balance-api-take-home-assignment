@@ -1,5 +1,5 @@
 const healthCheckController = (_req, res) => {
-  res.send('Hello World!');
+  res.send('API is live and ready to expect requests.');
 };
 
 module.exports = {
