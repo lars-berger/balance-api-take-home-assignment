@@ -27,7 +27,7 @@ const userBalanceController = async (req, res, next) => {
 
     res.send(userBalances);
   } catch (e) {
-    next(e);
+    next({ code: 400, message: e.message });
   }
 };
 
