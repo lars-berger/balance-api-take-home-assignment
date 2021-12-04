@@ -38,16 +38,19 @@ const userBalanceController = async (req, res, next) => {
     // Get user's balances from cache.
     const userBalances = getUserBalances(userId);
 
-    // Keep running total of user's assets in terms of USD.
-    let totalBalance = 0;
+    const currencyValuesPromises = Object.entries(userBalances).map(
+      async ([currency, userBalance]) => {
+        // Get latest coin price in terms of USD.
+        const usdCurrencyPair = getUsdCurrencyPair(currency);
+        const latestPrice = await getLatestCurrencyPairPrice(usdCurrencyPair);
 
-    for await (const [currency, userBalance] of Object.entries(userBalances)) {
-      // Get latest coin price in terms of USD.
-      const usdCurrencyPair = getUsdCurrencyPair(currency);
-      const latestPrice = await getLatestCurrencyPairPrice(usdCurrencyPair);
+        return latestPrice * userBalance;
+      },
+    );
 
-      totalBalance += latestPrice * userBalance;
-    }
+    // Get total value of user's assets in terms of USD.
+    const currencyValues = await Promise.all(currencyValuesPromises);
+    const totalBalance = currencyValues.reduce((acc, value) => acc + value, 0);
 
     res.json({ totalBalance });
   } catch (e) {
